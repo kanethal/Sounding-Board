@@ -1,64 +1,19 @@
 <template>
   <q-page class="column flex-center">
-    <q-knob
-      v-model="count"
-      :min="min"
-      :max="max"
-      size="80px"
-      show-value
-      :thickness="0.13"
-      color="primary"
-      track-color="dark"
-    >
-      <q-avatar size="75px">
-        <img alt="Quasar logo" src="~assets/quasar-logo-inner.svg" />
-      </q-avatar>
-    </q-knob>
-
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 140px"
-    />
-
-    <div class="q-mt-xl">
-      <q-btn
-        color="primary"
-        dense
-        round
-        label="-"
-        :disable="count === min"
-        @click="count--"
-      />
-
-      <span class="q-mx-md text-bold">{{ count }}</span>
-
-      <q-btn
-        color="primary"
-        dense
-        round
-        label="+"
-        :disable="count === max"
-        @click="count++"
-      />
-    </div>
-
-    <div class="q-mt-md" style="width: 200px">
-      <q-slider v-model="count" :min="min" :max="max" />
-    </div>
     <q-btn label="Prompt" color="primary" @click="prompt = true" />
-    <q-input
-      type="textarea"
-      autogrow
-      filled
-      color="green"
-      v-model="formattedSchedule"
-    ></q-input>
-
+    <div class="q-pa-md">
+      <q-table
+        title="Schedule"
+        :rows="formattedSchedule"
+        :columns="columns"
+        row-key="provider"
+      />
+    </div>
+    {{ formattedSchedule }}
     <q-dialog v-model="prompt" persistent>
       <q-card style="min-width: 350px">
         <q-card-section>
-          <div class="text-h6">Your address</div>
+          <div class="text-h6">Paste in copied schedule from Qgenda</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
@@ -113,23 +68,22 @@ const schedule = ref('');
 const formattedSchedule = computed(() => {
   if (schedule.value) {
     let str = schedule.value.toString();
-    let separateLines = str.split(/\r?\n|\r|\n/g);
-    return separateLines || '';
-  } else {
-    return '';
+    let arr = str.split(/\r?\t?\n|\r|\n/g);
+    let pairs = [];
+    for (let i = 0; i < arr.length + -1; i += 2) {
+      let row = {
+        provider: arr[i],
+        shift: arr[i + 1],
+      };
+      pairs.push(row);
+    }
+    return pairs;
   }
+  return [{ provider: 'dolly pardon', shift: '9 to 5' }];
 });
 
 const ft = ref(false);
 const min = -5;
 const max = 5;
 const prompt = ref(false);
-const FB = {
-  add(provider) {
-    addDoc(collection(db, 'users'), {
-      name: provider,
-      FT: ft,
-    });
-  },
-};
 </script>
